@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="map_btn_str">Открыть в карте</string>
+    <string name="Title">Погода в вашем городе</string>
+</resources>
