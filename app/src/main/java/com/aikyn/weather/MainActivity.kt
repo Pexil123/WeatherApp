@@ -6,7 +6,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -39,8 +41,9 @@ class MainActivity : AppCompatActivity() {
     private var mapTrue: Boolean = true
     private var imageView: ImageView? = null
     private var mapbtn: Button? = null
-    private var mapurl: String? = null
-    private var jsoninfo: String? = null
+    private var imageUrl = ""
+    private var mapurl = ""
+    private var jsoninfo = ""
     private var devbtn: Button? = null
     private var miniInfo: TextView? = null
     private var addButton: Button? = null
@@ -53,6 +56,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val instance = savedInstanceState?.getParcelable<Instance>("instance")
+
         button = findViewById(R.id.button)
         namefield = findViewById(R.id.name_field)
         info = findViewById(R.id.information)
@@ -64,6 +70,21 @@ class MainActivity : AppCompatActivity() {
         wallpaper = findViewById(R.id.wallpaper)
         addButton = findViewById(R.id.add_btn)
         prefs = getSharedPreferences("TABLE", MODE_PRIVATE)
+
+        if (instance != null &&  instance.imageUrl != "") {
+            info?.text = instance.info
+            miniInfo?.text = instance.miniInfo
+            jsoninfo = instance.jsonInfo
+            mapurl = instance.mapUrl
+            imageUrl = instance.imageUrl
+            Glide.with(this).load(imageUrl).into(imageView!!)
+        } else if (instance?.imageUrl == "") {
+            info?.text = instance.info
+            miniInfo?.text = instance.miniInfo
+            jsoninfo = instance.jsonInfo
+            mapurl = instance.mapUrl
+            imageUrl = instance.imageUrl
+        }
 
         while (ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED) {
@@ -77,6 +98,11 @@ class MainActivity : AppCompatActivity() {
 
             if (!namefield?.text?.toString()?.trim()?.equals("")!! && isTrue) {
                 isTrue = false
+                val currentOrientation = resources.configuration.orientation
+
+                if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
                 val name = namefield!!.text.toString()
                 val url = "https://api.weatherapi.com/v1/current.json?key=$API_KEY&q=$name&lang=ru"
                 GetResult().execute(url)
@@ -84,7 +110,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         mapbtn?.setOnClickListener {
-            if (mapurl != null && mapTrue) {
+            if (mapurl != "" && mapTrue) {
                 mapTrue = false
                 val openmap = Intent(Intent.ACTION_VIEW, Uri.parse(this.mapurl))
                 startActivity(openmap)
@@ -96,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         devbtn?.setOnClickListener {
-            if (jsoninfo != null) {
+            if (jsoninfo != "") {
                 val forDev = Intent(this, ForDeveloper::class.java)
                 forDev.putExtra("info", jsoninfo)
                 startActivity(forDev)
@@ -114,8 +140,16 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable("instance",
+            Instance(info?.text.toString(),
+                miniInfo?.text.toString(), jsoninfo,
+                imageUrl, mapurl))
+    }
+
     private fun loadWallpaperFromInternalStorage() {
-        if (currentName() != null) {
+        if (currentName() != "null") {
             val file = File("$filesDir/${currentName()}")
             val bytes = file.readBytes()
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
@@ -128,6 +162,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setDefaultWallpaper(): Boolean {
         wallpaper?.setImageResource(R.drawable.image_portrait)
+        filesDir.listFiles()!!.filter { it.isFile }.map { it.delete() }
+        currentName("null")
         return false
     }
 
@@ -161,21 +197,21 @@ class MainActivity : AppCompatActivity() {
                     if(!bmp.compress(Bitmap.CompressFormat.JPEG, 95, stream)) {
                         throw IOException("Couldn't save bitmap.")
                     }
-                    saveCurrentName(filename)
+                    currentName(filename)
                 }
             } else if (filename.endsWith(".png")) {
                 openFileOutput(filename, MODE_PRIVATE).use { stream ->
                     if(!bmp.compress(Bitmap.CompressFormat.PNG, 95, stream)) {
                         throw IOException("Couldn't save bitmap.")
                     }
-                    saveCurrentName(filename)
+                    currentName(filename)
                 }
             } else if (filename.endsWith(".webp")) {
                 openFileOutput(filename, MODE_PRIVATE).use { stream ->
                     if(!bmp.compress(Bitmap.CompressFormat.WEBP, 95, stream)) {
                         throw IOException("Couldn't save bitmap.")
                     }
-                    saveCurrentName(filename)
+                    currentName(filename)
                 }
             } else {
                 throw IOException("Couldn't save bitmap.")
@@ -240,9 +276,9 @@ class MainActivity : AppCompatActivity() {
                 val cloud: String = jsonObject.getJSONObject("current").getString("cloud")
 
 
-                val imageURL = "https:" + jsonObject.getJSONObject("current").getJSONObject("condition").getString("icon")
-                this@MainActivity.mapurl = "https://yandex.kz/pogoda/maps/nowcast?/z=9&lat=$lat&lon=$lon"
-                Glide.with(this@MainActivity).load(imageURL).into(imageView!!)
+                imageUrl = "https:" + jsonObject.getJSONObject("current").getJSONObject("condition").getString("icon")
+                mapurl = "https://yandex.kz/pogoda/maps/nowcast?/z=9&lat=$lat&lon=$lon"
+                Glide.with(this@MainActivity).load(imageUrl).into(imageView!!)
                 try {
                     val time = jsonObject.getJSONObject("location").getString("localtime").substring(11, 16)
                     info!!.text = "В городе $name из страны $country сейчас $time\n" +
@@ -264,27 +300,29 @@ class MainActivity : AppCompatActivity() {
                 info!!.text = "Вы что-то ввели неправильно или интернет не включен!"
                 miniInfo!!.text = ""
                 imageView?.setImageResource(R.drawable.x)
-                jsoninfo = null
-                mapurl = null
+                jsoninfo = ""
+                mapurl = ""
 
             } finally {
                 prog?.text = ""
                 namefield!!.isEnabled = true
                 isTrue = true
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }
 
     }
 
-    private fun saveCurrentName(name: String) {
-        prefs.edit().apply {
-            putString("name", name)
-            apply()
+    private fun currentName(filename: String? = null): String? {
+        if (filename == null) {
+            return prefs.getString("name", "null")
+        } else {
+            prefs.edit().apply {
+                putString("name", filename)
+                apply()
+            }
+            return null
         }
-    }
-
-    private fun currentName(): String? {
-        return prefs.getString("name", null)
     }
 
 }
