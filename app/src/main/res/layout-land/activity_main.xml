@@ -129,7 +129,7 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginTop="13dp"
-        android:background="@drawable/ic_baseline_add_circle_outline_24"
+        android:background="@drawable/ic_wallpaper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.045"
         app:layout_constraintStart_toStartOf="parent"

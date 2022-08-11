@@ -4,6 +4,7 @@ package com.aikyn.weather
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
@@ -21,6 +22,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.aikyn.weather.databinding.ChangeWallpaperDialogBinding
 import com.bumptech.glide.Glide
 import org.json.JSONException
 import org.json.JSONObject
@@ -130,14 +132,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         addButton?.setOnClickListener {
+            changeWallpaper()
+        }
+
+    }
+
+    fun changeWallpaper() {
+        val dialogBinding = ChangeWallpaperDialogBinding.inflate(layoutInflater)
+        val builder = AlertDialog.Builder(this).create()
+
+        builder.setView(dialogBinding.root)
+
+        dialogBinding.buttonDefaultWallpaper.setOnClickListener {
+            builder.dismiss()
+            setDefaultWallpaper()
+        }
+        dialogBinding.buttonAddNewWallpaper.setOnClickListener {
+            builder.dismiss()
             val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             startActivityForResult(galleryIntent,2)
         }
 
-        addButton?.setOnLongClickListener {
-            setDefaultWallpaper()
-        }
-
+        builder.show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

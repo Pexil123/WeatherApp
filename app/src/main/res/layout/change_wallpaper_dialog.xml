@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@color/gray"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/title_change_wallpaper"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:text="Изменить обои"
+        android:textSize="40sp"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-thin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <Button
+        android:id="@+id/button_default_wallpaper"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/ic_wallpaper"
+        android:backgroundTint="@color/teal_700"
+        app:layout_constraintTop_toBottomOf="@id/title_change_wallpaper"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_add_new_wallpaper"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Обои по умолчанию"
+        android:textColor="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/button_default_wallpaper"
+        app:layout_constraintStart_toStartOf="@id/button_default_wallpaper"
+        app:layout_constraintEnd_toEndOf="@id/button_default_wallpaper"/>
+
+    <Button
+        android:id="@+id/button_add_new_wallpaper"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/ic_add_circle"
+        android:backgroundTint="@color/teal_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_default_wallpaper"
+        app:layout_constraintTop_toBottomOf="@id/title_change_wallpaper" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Добавить новые обои"
+        android:textColor="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/button_add_new_wallpaper"
+        app:layout_constraintStart_toStartOf="@id/button_add_new_wallpaper"
+        app:layout_constraintEnd_toEndOf="@id/button_add_new_wallpaper"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
